@@ -1,0 +1,28 @@
+version: '3'
+services:
+  master:
+    container_name: master
+    image: redis:6.0.9
+    ports:
+      - 6379:6379
+  replica-1:
+    container_name: replica-1
+    image: redis:6.0.9
+    ports:
+      - 6380:6379
+    command: redis-server --slaveof master 6379
+  replica-2:
+    container_name: replica-2
+    image: redis:6.0.9
+    ports:
+      - 6381:6379
+    command: redis-server --slaveof master 6379    
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+    - REDIS_HOSTS=master:master,replica-1:replica-1,replica-2:replica-2
+    ports:
+    - "8081:8081"
