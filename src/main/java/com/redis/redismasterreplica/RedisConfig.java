@@ -10,37 +10,41 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 import io.lettuce.core.ReadFrom;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Configuration
 @ConfigurationProperties(prefix = "redis")
 public class RedisConfig {
 
-    private RedisProperties master;
-    private List<RedisProperties> replicas;
+    private RedisMasterProperties master;
+    private List<RedisReplicaProperties> replicas;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
                 .readFrom(ReadFrom.REPLICA_PREFERRED)
                 .build();
-        RedisStaticMasterReplicaConfiguration staticMasterReplicaConfiguration = new RedisStaticMasterReplicaConfiguration(master.getHost(), master.getPort());
+        final RedisStaticMasterReplicaConfiguration staticMasterReplicaConfiguration = new RedisStaticMasterReplicaConfiguration(master.getHost(), master.getPort());
         getReplicas().forEach(replica -> staticMasterReplicaConfiguration.addNode(replica.getHost(), replica.getPort()));
         return new LettuceConnectionFactory(staticMasterReplicaConfiguration, clientConfig);
     }
 
-	public RedisProperties getMaster() {
-		return master;
-	}
+	@Getter
+	@Setter
+	private static class RedisMasterProperties {
 
-	public void setMaster(RedisProperties master) {
-		this.master = master;
+	    private String host;
+	    private int port;
 	}
+	
+	@Getter
+	@Setter
+	private static class RedisReplicaProperties {
 
-	public List<RedisProperties> getReplicas() {
-		return replicas;
-	}
-
-	public void setReplicas(List<RedisProperties> replicas) {
-		this.replicas = replicas;
+	    private String host;
+	    private int port;
 	}
 }
